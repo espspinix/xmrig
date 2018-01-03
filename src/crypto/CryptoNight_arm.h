@@ -491,7 +491,7 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
 #ifdef XMRIG_ARMv7
 FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i b)
 {
-    return soft_aesenc(c, a);
+    return soft_aesenc(a, b);
 }
 #endif
 
