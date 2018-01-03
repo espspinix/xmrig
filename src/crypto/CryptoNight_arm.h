@@ -488,6 +488,13 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
     extra_hashes[ctx->state1[0] & 3](ctx->state1, 200, static_cast<char*>(output) + 32);
 }
 
+#ifdef XMRIG_ARMv7
+FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i b)
+{
+    return soft_aesenc(c, a);
+}
+#endif
+
 #define CN_STEP1(a, b, c, l, ptr, idx)              \
     a = _mm_xor_si128(a, c);                \
     idx = _mm_cvtsi128_si64(a);             \
@@ -529,6 +536,62 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
     cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) lx, (__m128i*) hx); \
     keccakf(hx, 24);                                                    \
     extra_hashes[state[0] & 3](state, 200, static_cast<char*>(output) + (32 * i))
+
+template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
+inline void cryptonight_triple_hash(const void *__restrict__ input, size_t size, void *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx)
+{
+    CN_INIT_AND_EXPLODE(l0, h0, 0, ctx->memory, ctx->state0);
+    CN_INIT_AND_EXPLODE(l1, h1, 1, ctx->memory, ctx->state1);
+    CN_INIT_AND_EXPLODE(l2, h2, 2, ctx->memory, ctx->state2);
+
+    CN_INIT_VARS(ax0, bx0, cx0, h0);
+    CN_INIT_VARS(ax1, bx1, cx1, h1);
+    CN_INIT_VARS(ax2, bx2, cx2, h2);
+
+    for (size_t i = 0; i < ITERATIONS/2; i++) {
+        uint64_t hi, lo,
+            idx0, idx1, idx2;
+        __m128i *ptr0, *ptr1, *ptr2;
+
+        // EVEN ROUND
+        CN_STEP1(ax0, bx0, cx0, l0, ptr0, idx0);
+        CN_STEP1(ax1, bx1, cx1, l1, ptr1, idx1);
+        CN_STEP1(ax2, bx2, cx2, l2, ptr2, idx2);
+
+        CN_STEP2(ax0, bx0, cx0, l0, ptr0, idx0);
+        CN_STEP2(ax1, bx1, cx1, l1, ptr1, idx1);
+        CN_STEP2(ax2, bx2, cx2, l2, ptr2, idx2);
+
+        CN_STEP3(ax0, bx0, cx0, l0, ptr0, idx0);
+        CN_STEP3(ax1, bx1, cx1, l1, ptr1, idx1);
+        CN_STEP3(ax2, bx2, cx2, l2, ptr2, idx2);
+
+        CN_STEP4(ax0, bx0, cx0, l0, ptr0, idx0);
+        CN_STEP4(ax1, bx1, cx1, l1, ptr1, idx1);
+        CN_STEP4(ax2, bx2, cx2, l2, ptr2, idx2);
+
+        // ODD ROUND
+        CN_STEP1(ax0, cx0, bx0, l0, ptr0, idx0);
+        CN_STEP1(ax1, cx1, bx1, l1, ptr1, idx1);
+        CN_STEP1(ax2, cx2, bx2, l2, ptr2, idx2);
+
+        CN_STEP2(ax0, cx0, bx0, l0, ptr0, idx0);
+        CN_STEP2(ax1, cx1, bx1, l1, ptr1, idx1);
+        CN_STEP2(ax2, cx2, bx2, l2, ptr2, idx2);
+
+        CN_STEP3(ax0, cx0, bx0, l0, ptr0, idx0);
+        CN_STEP3(ax1, cx1, bx1, l1, ptr1, idx1);
+        CN_STEP3(ax2, cx2, bx2, l2, ptr2, idx2);
+
+        CN_STEP4(ax0, cx0, bx0, l0, ptr0, idx0);
+        CN_STEP4(ax1, cx1, bx1, l1, ptr1, idx1);
+        CN_STEP4(ax2, cx2, bx2, l2, ptr2, idx2);
+    }
+
+    CN_IMPLODE_AND_EXPORT(l0, h0, 0, output, ctx->state0);
+    CN_IMPLODE_AND_EXPORT(l1, h1, 1, output, ctx->state1);
+    CN_IMPLODE_AND_EXPORT(l2, h2, 2, output, ctx->state2);
+}
 
 template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
 inline void cryptonight_penta_hash(const void *__restrict__ input, size_t size, void *__restrict__ output, struct cryptonight_ctx *__restrict__ ctx)
