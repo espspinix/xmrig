@@ -56,6 +56,7 @@ MultiWorker::MultiWorker(Handle *handle)
 {
     m_state       = new State();
     m_pausedState = new State();
+    m_ratio       = 5;
 }
 
 
@@ -83,11 +84,10 @@ void MultiWorker::start()
         }
 
         while (!Workers::isOutdated(m_sequence)) {
-            if ((m_count & 0x7) == 0) {
+            if ((++m_count & 0x7) == 0) {
                 storeStats();
             }
 
-            m_count += 5;
             *Job::nonce(m_state->blob)                       = ++m_state->nonce1;
             *Job::nonce(m_state->blob + m_state->job.size()) = ++m_state->nonce2;
             *Job::nonce(m_state->blob + (m_state->job.size() * 2)) = ++m_state->nonce3;

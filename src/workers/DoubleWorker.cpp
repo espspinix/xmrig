@@ -50,6 +50,7 @@ DoubleWorker::DoubleWorker(Handle *handle)
 {
     m_state       = new State();
     m_pausedState = new State();
+    m_ratio       = 2;
 }
 
 
@@ -77,11 +78,10 @@ void DoubleWorker::start()
         }
 
         while (!Workers::isOutdated(m_sequence)) {
-            if ((m_count & 0xF) == 0) {
+            if ((++m_count & 0xF) == 0) {
                 storeStats();
             }
 
-            m_count += 2;
             *Job::nonce(m_state->blob)                       = ++m_state->nonce1;
             *Job::nonce(m_state->blob + m_state->job.size()) = ++m_state->nonce2;
 

@@ -37,7 +37,8 @@ Worker::Worker(Handle *handle) :
     m_hashCount(0),
     m_timestamp(0),
     m_count(0),
-    m_sequence(0)
+    m_sequence(0),
+    m_ratio(1)
 {
     if (Cpu::threads() > 1 && handle->affinity() != -1L) {
         Cpu::setAffinity(m_id, handle->affinity());
@@ -58,6 +59,6 @@ void Worker::storeStats()
     using namespace std::chrono;
 
     const uint64_t timestamp = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
-    m_hashCount.store(m_count, std::memory_order_relaxed);
+    m_hashCount.store(m_count * m_ratio, std::memory_order_relaxed);
     m_timestamp.store(timestamp, std::memory_order_relaxed);
 }
