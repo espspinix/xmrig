@@ -53,6 +53,9 @@ public:
         AV5_AESNI_TRIPLE,
         AV6_AESNI_QUAD,
         AV7_AESNI_PENTA,
+        AV8_SOFT_AES_TRIPLE,
+        AV9_SOFT_AES_QUAD,
+        AV10_SOFT_AES_PENTA,
         AV_MAX
     };
 

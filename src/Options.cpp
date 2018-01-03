@@ -250,10 +250,10 @@ Options::Options(int argc, char **argv) :
     }
 
     m_algoVariant = getAlgoVariant();
-    if (m_algoVariant == AV7_AESNI_PENTA) {
+    if (m_algoVariant == AV7_AESNI_PENTA || m_algoVariant == AV10_SOFT_AES_PENTA) {
         m_doubleHash = 5;
     }
-    else if (m_algoVariant == AV5_AESNI_TRIPLE) {
+    else if (m_algoVariant == AV5_AESNI_TRIPLE || m_algoVariant == AV8_SOFT_AES_TRIPLE) {
         m_doubleHash = 3;
     }
     else if (m_algoVariant == AV2_AESNI_DOUBLE || m_algoVariant == AV4_SOFT_AES_DOUBLE) {

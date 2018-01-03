@@ -492,13 +492,13 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
     a = _mm_xor_si128(a, c);                \
     idx = _mm_cvtsi128_si64(a);             \
     ptr = (__m128i *)&l[idx & MASK];            \
-    _mm_prefetch((const char*)ptr, _MM_HINT_T0)
+    __builtin_prefetch((const char*)ptr, 1, 1)
 
-#define CN_STEP2(a, b, c, l, ptr, idx)              \
-    c = _mm_load_si128(ptr);              \
-    if(SOFT_AES)                        \
+#define CN_STEP2(a, b, c, l, ptr, idx)      \
+    c = _mm_load_si128(ptr);                \
+    if(SOFT_AES)                            \
         c = soft_aesenc(c, a);              \
-    else                            \
+    else                                    \
         c = _mm_aesenc_si128(c, a);         \
     b = _mm_xor_si128(b, c);                \
     _mm_store_si128(ptr, b)
@@ -506,7 +506,7 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
 #define CN_STEP3(a, b, c, l, ptr, idx)              \
     idx = _mm_cvtsi128_si64(c);             \
     ptr = (__m128i *)&l[idx & MASK];            \
-    _mm_prefetch((const char*)ptr, _MM_HINT_T0)
+    __builtin_prefetch((const char*)ptr, 1, 1)
 
 #define CN_STEP4(a, b, c, l, ptr, idx)              \
     b = _mm_load_si128(ptr);              \

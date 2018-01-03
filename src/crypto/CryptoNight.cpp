@@ -74,6 +74,14 @@ static void cryptonight_av4_softaes_double(const void *input, size_t size, void 
     cryptonight_double_hash<0x80000, MEMORY, 0x1FFFF0, true>(input, size, output, ctx);
 }
 
+static void cryptonight_av8_softaes_triple(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
+    cryptonight_triple_hash<0x80000, MEMORY, 0x1FFFF0, true>(input, size, output, ctx);
+}
+
+static void cryptonight_av10_softaes_penta(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
+    cryptonight_penta_hash<0x80000, MEMORY, 0x1FFFF0, true>(input, size, output, ctx);
+}
+
 
 #ifndef XMRIG_NO_AEON
 static void cryptonight_lite_av1_aesni(const void *input, size_t size, void *output, cryptonight_ctx *ctx) {
@@ -99,7 +107,7 @@ static void cryptonight_lite_av4_softaes_double(const void *input, size_t size, 
     cryptonight_double_hash<0x40000, MEMORY_LITE, 0xFFFF0, true>(input, size, output, ctx);
 }
 
-void (*cryptonight_variations[11])(const void *input, size_t size, void *output, cryptonight_ctx *ctx) = {
+void (*cryptonight_variations[14])(const void *input, size_t size, void *output, cryptonight_ctx *ctx) = {
             cryptonight_av1_aesni,
             cryptonight_av2_aesni_double,
             cryptonight_av3_softaes,
@@ -107,20 +115,26 @@ void (*cryptonight_variations[11])(const void *input, size_t size, void *output,
             cryptonight_av5_aesni_triple,
             cryptonight_av5_aesni_triple,
             cryptonight_av7_aesni_penta,
+            cryptonight_av8_softaes_triple,
+            cryptonight_av8_softaes_triple,
+            cryptonight_av10_softaes_penta,
             cryptonight_lite_av1_aesni,
             cryptonight_lite_av2_aesni_double,
             cryptonight_lite_av3_softaes,
             cryptonight_lite_av4_softaes_double
         };
 #else
-void (*cryptonight_variations[7])(const void *input, size_t size, void *output, cryptonight_ctx *ctx) = {
+void (*cryptonight_variations[10])(const void *input, size_t size, void *output, cryptonight_ctx *ctx) = {
             cryptonight_av1_aesni,
             cryptonight_av2_aesni_double,
             cryptonight_av3_softaes,
             cryptonight_av4_softaes_double,
             cryptonight_av5_aesni_triple,
             cryptonight_av7_aesni_penta,
-            cryptonight_av7_aesni_penta
+            cryptonight_av7_aesni_penta,
+            cryptonight_av8_softaes_triple,
+            cryptonight_av8_softaes_triple,
+            cryptonight_av10_softaes_penta,
         };
 #endif
 
@@ -135,7 +149,7 @@ bool CryptoNight::hash(const Job &job, JobResult &result, cryptonight_ctx *ctx)
 
 bool CryptoNight::init(int algo, int variant)
 {
-    if (variant < 1 || variant > 7) {
+    if (variant < 1 || variant > 10) {
         return false;
     }
 

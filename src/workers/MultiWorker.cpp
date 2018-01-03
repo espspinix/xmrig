@@ -83,7 +83,7 @@ void MultiWorker::start()
         }
 
         while (!Workers::isOutdated(m_sequence)) {
-            if ((m_count & 0xF) == 0) {
+            if ((m_count & 0x7) == 0) {
                 storeStats();
             }
 
