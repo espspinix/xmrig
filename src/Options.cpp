@@ -199,7 +199,7 @@ const char *Options::algoName() const
 Options::Options(int argc, char **argv) :
     m_background(false),
     m_colors(true),
-    m_doubleHash(false),
+    m_doubleHash(1),
     m_hugePages(true),
     m_ready(false),
     m_safe(false),
@@ -250,8 +250,14 @@ Options::Options(int argc, char **argv) :
     }
 
     m_algoVariant = getAlgoVariant();
-    if (m_algoVariant == AV2_AESNI_DOUBLE || m_algoVariant == AV4_SOFT_AES_DOUBLE) {
-        m_doubleHash = true;
+    if (m_algoVariant == AV7_AESNI_PENTA) {
+        m_doubleHash = 5;
+    }
+    else if (m_algoVariant == AV5_AESNI_TRIPLE) {
+        m_doubleHash = 3;
+    }
+    else if (m_algoVariant == AV2_AESNI_DOUBLE || m_algoVariant == AV4_SOFT_AES_DOUBLE) {
+        m_doubleHash = 2;
     }
 
     if (!m_threads) {

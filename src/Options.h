@@ -50,6 +50,9 @@ public:
         AV2_AESNI_DOUBLE,
         AV3_SOFT_AES,
         AV4_SOFT_AES_DOUBLE,
+        AV5_AESNI_TRIPLE,
+        AV6_AESNI_QUAD,
+        AV7_AESNI_PENTA,
         AV_MAX
     };
 
@@ -58,7 +61,7 @@ public:
 
     inline bool background() const                { return m_background; }
     inline bool colors() const                    { return m_colors; }
-    inline bool doubleHash() const                { return m_doubleHash; }
+    inline int doubleHash() const                { return m_doubleHash; }
     inline bool hugePages() const                 { return m_hugePages; }
     inline bool syslog() const                    { return m_syslog; }
     inline const char *apiToken() const           { return m_apiToken; }
@@ -109,7 +112,7 @@ private:
 
     bool m_background;
     bool m_colors;
-    bool m_doubleHash;
+    int m_doubleHash;
     bool m_hugePages;
     bool m_ready;
     bool m_safe;

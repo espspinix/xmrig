@@ -39,14 +39,15 @@
 #include "Options.h"
 
 
-bool Mem::allocate(int algo, int threads, bool doubleHash, bool enabled)
+bool Mem::allocate(int algo, int threads, int doubleHash, bool enabled)
 {
     m_algo       = algo;
     m_threads    = threads;
     m_doubleHash = doubleHash;
 
-    const int ratio   = (doubleHash && algo != Options::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
-    const size_t size = MEMORY * (threads * ratio + 1);
+    // const int ratio   = ((doubleHash > 1) && algo != Options::ALGO_CRYPTONIGHT_LITE) ? 2 : 1;
+    const size_t size = MEMORY * (threads * doubleHash + 1);
+    LOG_ERR("freds: %i hashis: %i memsize: %i", threads, doubleHash, size);
 
     if (!enabled) {
         m_memory = static_cast<uint8_t*>(_mm_malloc(size, 16));

@@ -42,6 +42,8 @@ set(HEADERS
     src/Platform.h
     src/Summary.h
     src/version.h
+    src/workers/TripleWorker.h
+    src/workers/MultiWorker.h
     src/workers/DoubleWorker.h
     src/workers/Handle.h
     src/workers/Hashrate.h
@@ -91,6 +93,8 @@ set(SOURCES
     src/Options.cpp
     src/Platform.cpp
     src/Summary.cpp
+    src/workers/TripleWorker.cpp
+    src/workers/MultiWorker.cpp
     src/workers/DoubleWorker.cpp
     src/workers/Handle.cpp
     src/workers/Hashrate.cpp

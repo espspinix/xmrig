@@ -29,6 +29,8 @@
 #include "Mem.h"
 #include "Options.h"
 #include "workers/DoubleWorker.h"
+#include "workers/TripleWorker.h"
+#include "workers/MultiWorker.h"
 #include "workers/Handle.h"
 #include "workers/Hashrate.h"
 #include "workers/SingleWorker.h"
@@ -150,7 +152,13 @@ void Workers::submit(const JobResult &result)
 void Workers::onReady(void *arg)
 {
     auto handle = static_cast<Handle*>(arg);
-    if (Mem::isDoubleHash()) {
+    if (Mem::isDoubleHash() == 5) {
+        handle->setWorker(new MultiWorker(handle));
+    }
+    else if (Mem::isDoubleHash() == 3) {
+        handle->setWorker(new TripleWorker(handle));
+    } 
+    else if (Mem::isDoubleHash() == 2) {
         handle->setWorker(new DoubleWorker(handle));
     }
     else {
