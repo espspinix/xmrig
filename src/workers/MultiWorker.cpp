@@ -163,9 +163,9 @@ void MultiWorker::consumeJob()
     else {
         m_state->nonce1 = 0xffffffffU / (m_threads * 5) * m_id;
         m_state->nonce2 = 0xffffffffU / (m_threads * 5) * (m_id + m_threads);
-        m_state->nonce3 = 0xffffffffU / (m_threads * 5) * (m_id + m_threads + m_threads + m_threads);
-        m_state->nonce4 = 0xffffffffU / (m_threads * 5) * (m_id + m_threads + m_threads + m_threads + m_threads);
-        m_state->nonce5 = 0xffffffffU / (m_threads * 5) * (m_id + m_threads + m_threads + m_threads + m_threads + m_threads);
+        m_state->nonce3 = 0xffffffffU / (m_threads * 5) * (m_id + m_threads + m_threads);
+        m_state->nonce4 = 0xffffffffU / (m_threads * 5) * (m_id + m_threads + m_threads + m_threads);
+        m_state->nonce5 = 0xffffffffU / (m_threads * 5) * (m_id + m_threads + m_threads + m_threads + m_threads);
     }
 }
 
