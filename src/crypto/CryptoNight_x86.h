@@ -564,14 +564,12 @@ inline void cryptonight_triple_hash(const void *__restrict__ input, size_t size,
     extra_hashes[ctx->state2[0] & 3](ctx->state2, 200, static_cast<char*>(output) + 64);
 }
 
-
-#define CN_STEP1(a, b, c, l, ptr, idx)              \
+#define CN_STEP1(a, b, c, l, ptr)              \
     a = _mm_xor_si128(a, c);                \
-    idx = _mm_cvtsi128_si64(a);             \
-    ptr = (__m128i *)&l[idx & MASK];            \
+    ptr = (__m128i *)&l[a[0] & MASK];            \
     _mm_prefetch((const char*)ptr, _MM_HINT_T0)
 
-#define CN_STEP2(a, b, c, l, ptr, idx)              \
+#define CN_STEP2(a, b, c, l, ptr)              \
     c = _mm_load_si128(ptr);              \
     if(SOFT_AES)                        \
         c = soft_aesenc(c, a);              \
@@ -580,14 +578,13 @@ inline void cryptonight_triple_hash(const void *__restrict__ input, size_t size,
     b = _mm_xor_si128(b, c);                \
     _mm_store_si128(ptr, b)
 
-#define CN_STEP3(a, b, c, l, ptr, idx)              \
-    idx = _mm_cvtsi128_si64(c);             \
-    ptr = (__m128i *)&l[idx & MASK];            \
+#define CN_STEP3(a, b, c, l, ptr)              \
+    ptr = (__m128i *)&l[c[0] & MASK];            \
     _mm_prefetch((const char*)ptr, _MM_HINT_T0)
 
-#define CN_STEP4(a, b, c, l, ptr, idx)              \
+#define CN_STEP4(a, b, c, l, ptr)              \
     b = _mm_load_si128(ptr);              \
-    lo = __umul128(idx, _mm_cvtsi128_si64(b), &hi);      \
+    lo = __umul128(c[0], b[0], &hi);      \
     a = _mm_add_epi64(a, _mm_set_epi64x(lo, hi));       \
     _mm_store_si128(ptr, a)
 
@@ -624,59 +621,58 @@ inline void cryptonight_penta_hash(const void *__restrict__ input, size_t size, 
     CN_INIT_VARS(ax4, bx4, cx4, h4);
 
     for (size_t i = 0; i < ITERATIONS/2; i++) {
-        uint64_t hi, lo,
-            idx0, idx1, idx2, idx3, idx4;
+        uint64_t hi, lo;
         __m128i *ptr0, *ptr1, *ptr2, *ptr3, *ptr4;
 
         // EVEN ROUND
-        CN_STEP1(ax0, bx0, cx0, l0, ptr0, idx0);
-        CN_STEP1(ax1, bx1, cx1, l1, ptr1, idx1);
-        CN_STEP1(ax2, bx2, cx2, l2, ptr2, idx2);
-        CN_STEP1(ax3, bx3, cx3, l3, ptr3, idx3);
-        CN_STEP1(ax4, bx4, cx4, l4, ptr4, idx4);
+        CN_STEP1(ax0, bx0, cx0, l0, ptr0);
+        CN_STEP1(ax1, bx1, cx1, l1, ptr1);
+        CN_STEP1(ax2, bx2, cx2, l2, ptr2);
+        CN_STEP1(ax3, bx3, cx3, l3, ptr3);
+        CN_STEP1(ax4, bx4, cx4, l4, ptr4);
 
-        CN_STEP2(ax0, bx0, cx0, l0, ptr0, idx0);
-        CN_STEP2(ax1, bx1, cx1, l1, ptr1, idx1);
-        CN_STEP2(ax2, bx2, cx2, l2, ptr2, idx2);
-        CN_STEP2(ax3, bx3, cx3, l3, ptr3, idx3);
-        CN_STEP2(ax4, bx4, cx4, l4, ptr4, idx4);
+        CN_STEP2(ax0, bx0, cx0, l0, ptr0);
+        CN_STEP2(ax1, bx1, cx1, l1, ptr1);
+        CN_STEP2(ax2, bx2, cx2, l2, ptr2);
+        CN_STEP2(ax3, bx3, cx3, l3, ptr3);
+        CN_STEP2(ax4, bx4, cx4, l4, ptr4);
 
-        CN_STEP3(ax0, bx0, cx0, l0, ptr0, idx0);
-        CN_STEP3(ax1, bx1, cx1, l1, ptr1, idx1);
-        CN_STEP3(ax2, bx2, cx2, l2, ptr2, idx2);
-        CN_STEP3(ax3, bx3, cx3, l3, ptr3, idx3);
-        CN_STEP3(ax4, bx4, cx4, l4, ptr4, idx4);
+        CN_STEP3(ax0, bx0, cx0, l0, ptr0);
+        CN_STEP3(ax1, bx1, cx1, l1, ptr1);
+        CN_STEP3(ax2, bx2, cx2, l2, ptr2);
+        CN_STEP3(ax3, bx3, cx3, l3, ptr3);
+        CN_STEP3(ax4, bx4, cx4, l4, ptr4);
 
-        CN_STEP4(ax0, bx0, cx0, l0, ptr0, idx0);
-        CN_STEP4(ax1, bx1, cx1, l1, ptr1, idx1);
-        CN_STEP4(ax2, bx2, cx2, l2, ptr2, idx2);
-        CN_STEP4(ax3, bx3, cx3, l3, ptr3, idx3);
-        CN_STEP4(ax4, bx4, cx4, l4, ptr4, idx4);
+        CN_STEP4(ax0, bx0, cx0, l0, ptr0);
+        CN_STEP4(ax1, bx1, cx1, l1, ptr1);
+        CN_STEP4(ax2, bx2, cx2, l2, ptr2);
+        CN_STEP4(ax3, bx3, cx3, l3, ptr3);
+        CN_STEP4(ax4, bx4, cx4, l4, ptr4);
 
         // ODD ROUND
-        CN_STEP1(ax0, cx0, bx0, l0, ptr0, idx0);
-        CN_STEP1(ax1, cx1, bx1, l1, ptr1, idx1);
-        CN_STEP1(ax2, cx2, bx2, l2, ptr2, idx2);
-        CN_STEP1(ax3, cx3, bx3, l3, ptr3, idx3);
-        CN_STEP1(ax4, cx4, bx4, l4, ptr4, idx4);
+        CN_STEP1(ax0, cx0, bx0, l0, ptr0);
+        CN_STEP1(ax1, cx1, bx1, l1, ptr1);
+        CN_STEP1(ax2, cx2, bx2, l2, ptr2);
+        CN_STEP1(ax3, cx3, bx3, l3, ptr3);
+        CN_STEP1(ax4, cx4, bx4, l4, ptr4);
 
-        CN_STEP2(ax0, cx0, bx0, l0, ptr0, idx0);
-        CN_STEP2(ax1, cx1, bx1, l1, ptr1, idx1);
-        CN_STEP2(ax2, cx2, bx2, l2, ptr2, idx2);
-        CN_STEP2(ax3, cx3, bx3, l3, ptr3, idx3);
-        CN_STEP2(ax4, cx4, bx4, l4, ptr4, idx4);
+        CN_STEP2(ax0, cx0, bx0, l0, ptr0);
+        CN_STEP2(ax1, cx1, bx1, l1, ptr1);
+        CN_STEP2(ax2, cx2, bx2, l2, ptr2);
+        CN_STEP2(ax3, cx3, bx3, l3, ptr3);
+        CN_STEP2(ax4, cx4, bx4, l4, ptr4);
 
-        CN_STEP3(ax0, cx0, bx0, l0, ptr0, idx0);
-        CN_STEP3(ax1, cx1, bx1, l1, ptr1, idx1);
-        CN_STEP3(ax2, cx2, bx2, l2, ptr2, idx2);
-        CN_STEP3(ax3, cx3, bx3, l3, ptr3, idx3);
-        CN_STEP3(ax4, cx4, bx4, l4, ptr4, idx4);
+        CN_STEP3(ax0, cx0, bx0, l0, ptr0);
+        CN_STEP3(ax1, cx1, bx1, l1, ptr1);
+        CN_STEP3(ax2, cx2, bx2, l2, ptr2);
+        CN_STEP3(ax3, cx3, bx3, l3, ptr3);
+        CN_STEP3(ax4, cx4, bx4, l4, ptr4);
 
-        CN_STEP4(ax0, cx0, bx0, l0, ptr0, idx0);
-        CN_STEP4(ax1, cx1, bx1, l1, ptr1, idx1);
-        CN_STEP4(ax2, cx2, bx2, l2, ptr2, idx2);
-        CN_STEP4(ax3, cx3, bx3, l3, ptr3, idx3);
-        CN_STEP4(ax4, cx4, bx4, l4, ptr4, idx4);
+        CN_STEP4(ax0, cx0, bx0, l0, ptr0);
+        CN_STEP4(ax1, cx1, bx1, l1, ptr1);
+        CN_STEP4(ax2, cx2, bx2, l2, ptr2);
+        CN_STEP4(ax3, cx3, bx3, l3, ptr3);
+        CN_STEP4(ax4, cx4, bx4, l4, ptr4);
     }
 
     CN_IMPLODE_AND_EXPORT(l0, h0, 0, output, ctx->state0);
