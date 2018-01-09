@@ -177,7 +177,6 @@ bool CryptoNight::selfTest(int algo) {
     }
 
     int SIZE, RATIO;
-    char my_test_input;
 
     if (Options::i()->doubleHash() == 5) {
         SIZE = 32 * 5;
