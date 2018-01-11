@@ -497,27 +497,25 @@ __m128i _mm_aesenc_si128(__m128i a, __m128i b)
 
 #define CN_STEP1(a, b, c, l, ptr, idx)              \
     a = _mm_xor_si128(a, c);                \
-    idx = _mm_cvtsi128_si64(a);             \
-    ptr = (__m128i *)&l[idx & MASK];            \
+    ptr = (__m128i *)&l[a[0] & MASK];            \
     __builtin_prefetch((const char*)ptr, 1, 1)
 
-#define CN_STEP2(a, b, c, l, ptr, idx)      \
-    c = _mm_load_si128(ptr);                \
-    if(SOFT_AES)                            \
+#define CN_STEP2(a, b, c, l, ptr, idx)              \
+    c = _mm_load_si128(ptr);              \
+    if(SOFT_AES)                        \
         c = soft_aesenc(c, a);              \
-    else                                    \
+    else                            \
         c = _mm_aesenc_si128(c, a);         \
     b = _mm_xor_si128(b, c);                \
     _mm_store_si128(ptr, b)
 
 #define CN_STEP3(a, b, c, l, ptr, idx)              \
-    idx = _mm_cvtsi128_si64(c);             \
-    ptr = (__m128i *)&l[idx & MASK];            \
+    ptr = (__m128i *)&l[c[0] & MASK];            \
     __builtin_prefetch((const char*)ptr, 1, 1)
 
 #define CN_STEP4(a, b, c, l, ptr, idx)              \
     b = _mm_load_si128(ptr);              \
-    lo = __umul128(idx, _mm_cvtsi128_si64(b), &hi);      \
+    lo = __umul128(c[0], b[0], &hi);      \
     a = _mm_add_epi64(a, _mm_set_epi64x(lo, hi));       \
     _mm_store_si128(ptr, a)
 
