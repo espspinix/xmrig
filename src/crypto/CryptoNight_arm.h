@@ -95,6 +95,32 @@ static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
 }
 #else
 static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi) {
+//     uint32_t a_low = ((uint32_t *) &multiplier)[0];
+//     uint32_t a_hi = ((uint32_t *) &multiplier)[1];
+//     uint32_t b_low = ((uint32_t *) &multiplicand)[0];
+//     uint32_t b_hi = ((uint32_t *) &multiplicand)[1];
+
+// //    printf ("al: %" PRIu32 ", ah: %" PRIu32 " \n\n", a_low, a_hi);
+// //    printf ("bl: %" PRIu32 ", bh: %" PRIu32 " \n\n", b_low, b_hi);
+
+//     uint64x2_t ll_bhal = vmull_n_u32((uint32x2_t) {b_low, b_hi}, a_low);
+//     uint64x2_t hh_ahbl = vmull_n_u32((uint32x2_t) {b_hi, b_low}, a_hi);
+// //    printf("vsc: hh,ll,bhal,blah: %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 "\n", hh_ahbl[0], ll_bhal[0], ll_bhal[1], hh_ahbl[$
+
+// uint64x2_t preResult = vaddl_u32( 
+//         (uint32x2_t) { ((uint32_t *) &(ll_bhal[1]))[0], ((uint32_t *) &(ll_bhal[1]))[1] },
+//         (uint32x2_t) { ((uint32_t *) &(hh_ahbl[1]))[0], ((uint32_t *) &(hh_ahbl[1]))[1] }
+// );
+
+// uint64x2_t result = vaddq_u64(
+//         (uint64x2_t) { ll_bhal[0], hh_ahbl[0] },
+//         preResult
+// );
+
+// *product_hi = result[1];
+
+// return result[0];
+
     // multiplier   = ab = a * 2^32 + b
     // multiplicand = cd = c * 2^32 + d
     // ab * cd = a * c * 2^64 + (a * d + b * c) * 2^32 + b * d
@@ -495,9 +521,11 @@ __m128i _mm_aesenc_si128(__m128i a, __m128i b)
 }
 #endif
 
+
 #define CN_STEP1(a, b, c, l, ptr, idx)              \
     a = _mm_xor_si128(a, c);                \
-    ptr = (__m128i *)&l[a[0] & MASK];            \
+    idx = _mm_cvtsi128_si64(a);             \
+    ptr = (__m128i *)&l[idx & MASK];            \
     __builtin_prefetch((const char*)ptr, 1, 1)
 
 #define CN_STEP2(a, b, c, l, ptr, idx)              \
@@ -510,12 +538,13 @@ __m128i _mm_aesenc_si128(__m128i a, __m128i b)
     _mm_store_si128(ptr, b)
 
 #define CN_STEP3(a, b, c, l, ptr, idx)              \
-    ptr = (__m128i *)&l[c[0] & MASK];            \
+    idx = _mm_cvtsi128_si64(c);             \
+    ptr = (__m128i *)&l[idx & MASK];            \
     __builtin_prefetch((const char*)ptr, 1, 1)
 
 #define CN_STEP4(a, b, c, l, ptr, idx)              \
     b = _mm_load_si128(ptr);              \
-    lo = __umul128(c[0], b[0], &hi);      \
+    lo = __umul128(idx, _mm_cvtsi128_si64(b), &hi);      \
     a = _mm_add_epi64(a, _mm_set_epi64x(lo, hi));       \
     _mm_store_si128(ptr, a)
 
