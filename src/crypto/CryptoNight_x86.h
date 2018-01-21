@@ -223,6 +223,9 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
     __m128i xin0, xin1, xin2, xin3, xin4, xin5, xin6, xin7;
     __m128i k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
 
+    _mm_prefetch((const char*)input, _MM_HINT_NTA);
+    _mm_prefetch((const char*)input + 8, _MM_HINT_NTA);
+
     aes_genkey<SOFT_AES>(input, &k0, &k1, &k2, &k3, &k4, &k5, &k6, &k7, &k8, &k9);
 
     xin0 = _mm_load_si128(input + 4);
@@ -235,6 +238,8 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
     xin7 = _mm_load_si128(input + 11);
 
     for (size_t i = 0; i < MEM / sizeof(__m128i); i += 8) {
+        _mm_prefetch((const char*)output + i + 8, _MM_HINT_T2);
+        
         aes_round<SOFT_AES>(k0, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k1, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k2, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
@@ -264,6 +269,9 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
     __m128i xout0, xout1, xout2, xout3, xout4, xout5, xout6, xout7;
     __m128i k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
 
+    _mm_prefetch((const char*)output, _MM_HINT_NTA);
+    _mm_prefetch((const char*)input, _MM_HINT_NTA);
+
     aes_genkey<SOFT_AES>(output + 2, &k0, &k1, &k2, &k3, &k4, &k5, &k6, &k7, &k8, &k9);
 
     xout0 = _mm_load_si128(output + 4);
@@ -277,6 +285,8 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 
     for (size_t i = 0; i < MEM / sizeof(__m128i); i += 8)
     {
+        _mm_prefetch((const char*)input + i + 8, _MM_HINT_NTA);
+
         xout0 = _mm_xor_si128(_mm_load_si128(input + i + 0), xout0);
         xout1 = _mm_xor_si128(_mm_load_si128(input + i + 1), xout1);
         xout2 = _mm_xor_si128(_mm_load_si128(input + i + 2), xout2);
@@ -576,11 +586,12 @@ inline void cryptonight_triple_hash(const void *__restrict__ input, size_t size,
     else                            \
         c = _mm_aesenc_si128(c, a);         \
     b = _mm_xor_si128(b, c);                \
-    _mm_store_si128(ptr, b)
-
-#define CN_STEP3(a, b, c, l, ptr)              \
+    _mm_store_si128(ptr, b); \
     ptr = (__m128i *)&l[c[0] & MASK];            \
     _mm_prefetch((const char*)ptr, _MM_HINT_T0)
+
+#define CN_STEP3(a, b, c, l, ptr)              \
+    ;
 
 #define CN_STEP4(a, b, c, l, ptr)              \
     b = _mm_load_si128(ptr);              \
