@@ -219,6 +219,8 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
+    // LOG_ERR("New Job | ID %s | BLOB %s | target %s", params["job_id"].GetString(), params["blob"].GetString(), params["target"].GetString());
+
     if (m_job == job) {
         if (!m_quiet) {
             LOG_WARN("[%s:%u] duplicate job received, reconnect", m_url.host(), m_url.port());

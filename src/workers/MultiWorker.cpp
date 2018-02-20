@@ -28,7 +28,7 @@
 #include "crypto/CryptoNight.h"
 #include "workers/MultiWorker.h"
 #include "workers/Workers.h"
-
+#include "log/Log.h"
 
 class MultiWorker::State
 {
@@ -94,27 +94,72 @@ void MultiWorker::start()
             *Job::nonce(m_state->blob + (m_state->job.size() * 3)) = ++m_state->nonce4;
             *Job::nonce(m_state->blob + (m_state->job.size() * 4)) = ++m_state->nonce5;
 
+            // for(int i = 0; i < m_state->job.size(); i++) {
+            //     LOG_ERR("%04X", (const uint8_t *)m_state->blob[i]);
+            // }
+
+            // LOG_ERR("hashing: %llu %i %i %i %i %i", 
+            //     m_ctx->state0, 
+            //     (const uint8_t *)m_state->blob + m_state->job.size() * 0,
+            //     (const uint8_t *)m_state->blob + m_state->job.size() * 1,
+            //     (const uint8_t *)m_state->blob + m_state->job.size() * 2,
+            //     (const uint8_t *)m_state->blob + m_state->job.size() * 3,
+            //     (const uint8_t *)m_state->blob + m_state->job.size() * 4
+            // );
+            // LOG_ERR("nonce: %llu %lu %u %u %u %u %u", 
+            //     m_state->blob, 
+            //     m_state->job.size(),
+            //     m_state->nonce1,
+            //     m_state->nonce2,
+            //     m_state->nonce3,
+            //     m_state->nonce4,
+            //     m_state->nonce5
+            // );
+
             CryptoNight::hash(m_state->blob, m_state->job.size(), m_hash, m_ctx);
 
+            // LOG_ERR("target: %lu < %lu", *reinterpret_cast<uint64_t*>(m_hash + 24), m_state->job.target());
+
             if (*reinterpret_cast<uint64_t*>(m_hash + 24) < m_state->job.target()) {
+                // LOG_ERR("SUBMIT 1:");
+                // LOG_ERR("target: %lu < %lu", *reinterpret_cast<uint64_t*>(m_hash + 24), m_state->job.target());
+                // LOG_ERR("Good nonce: %lu", m_state->nonce1 - 1);
                 Workers::submit(JobResult(m_state->job.poolId(), m_state->job.id(), m_state->nonce1, m_hash, m_state->job.diff()));
             }
 
             if (*reinterpret_cast<uint64_t*>(m_hash + 32 + 24) < m_state->job.target()) {
+                // LOG_ERR("SUBMIT 2:");
+                // LOG_ERR("target: %lu < %lu", *reinterpret_cast<uint64_t*>(m_hash + 32 + 24), m_state->job.target());
+                // LOG_ERR("Good nonce: %lu", m_state->nonce2 - 1);
                 Workers::submit(JobResult(m_state->job.poolId(), m_state->job.id(), m_state->nonce2, m_hash + 32, m_state->job.diff()));
             }
 
             if (*reinterpret_cast<uint64_t*>(m_hash + 32 + 32 + 24) < m_state->job.target()) {
+                // LOG_ERR("SUBMIT 3:");
+                // LOG_ERR("target: %lu < %lu", *reinterpret_cast<uint64_t*>(m_hash + 32 + 32 + 24), m_state->job.target());
+                // LOG_ERR("Good nonce: %lu", m_state->nonce3 - 1);
                 Workers::submit(JobResult(m_state->job.poolId(), m_state->job.id(), m_state->nonce3, m_hash + 32 + 32, m_state->job.diff()));
             }
 
             if (*reinterpret_cast<uint64_t*>(m_hash + 32 + 32 + 32 + 24) < m_state->job.target()) {
+                // LOG_ERR("SUBMIT 4:");
+                // LOG_ERR("target: %lu < %lu", *reinterpret_cast<uint64_t*>(m_hash + 32 + 32 + 32 + 24), m_state->job.target());
+                // LOG_ERR("Good nonce: %lu", m_state->nonce4 - 1);
                 Workers::submit(JobResult(m_state->job.poolId(), m_state->job.id(), m_state->nonce4, m_hash + 32 + 32 + 32, m_state->job.diff()));
             }
 
             if (*reinterpret_cast<uint64_t*>(m_hash + 32 + 32 + 32 + 32 + 24) < m_state->job.target()) {
+                // LOG_ERR("SUBMIT 5:");
+                // LOG_ERR("target: %lu < %lu", *reinterpret_cast<uint64_t*>(m_hash + 32 + 32 + 32 + 32 + 24), m_state->job.target());
+                // LOG_ERR("Good nonce: %lu", m_state->nonce5 - 1);
                 Workers::submit(JobResult(m_state->job.poolId(), m_state->job.id(), m_state->nonce5, m_hash + 32 + 32 + 32 + 32, m_state->job.diff()));
             }
+
+            // m_state->nonce1++;
+            // m_state->nonce2++;
+            // m_state->nonce3++;
+            // m_state->nonce4++;
+            // m_state->nonce5++;
 
             std::this_thread::yield();
         }
