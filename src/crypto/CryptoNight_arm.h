@@ -525,25 +525,38 @@ __m128i _mm_aesenc_si128(__m128i a, __m128i b)
 #endif
 
 
-#define CN_STEP1(a, b, c, l, ptr, idx)              \
+#define CN_STEP1(a, b, c, l, ptr, idx)      \
     a = _mm_xor_si128(a, c);                \
     idx = _mm_cvtsi128_si64(a);             \
-    ptr = (__m128i *)&l[idx & MASK];            \
-    __builtin_prefetch((const char*)ptr, 1, 1)
+    ptr = (__m128i *)&l[idx & MASK];        \
+    __asm__ __volatile__(                   \
+        "pldw\t[%0]"                        \
+        :                                   \
+        : "r" (ptr)                         \
+    )
 
-#define CN_STEP2(a, b, c, l, ptr, idx)              \
-    if(SOFT_AES)                        \
-        c = soft_aesenc((uint32_t*)ptr, a);              \
-    else                            \
-        c = _mm_load_si128(ptr);              \
-        c = _mm_aesenc_si128(c, a);         \
-    b = _mm_xor_si128(b, c);                \
-    _mm_store_si128(ptr, b)
+    // __builtin_prefetch((const char*)ptr, 1, 1)
+
+#define CN_STEP2(a, b, c, l, ptr, idx)          \
+    if(SOFT_AES)                                \
+        c = soft_aesenc((uint32_t*)ptr, a);     \
+    else                                        \
+        c = _mm_load_si128(ptr);                \
+        c = _mm_aesenc_si128(c, a);             \
+    b = _mm_xor_si128(b, c);                    \
+    _mm_store_si128(ptr, b);                    \
+    idx = _mm_cvtsi128_si64(c);                 \
+    ptr = (__m128i *)&l[idx & MASK];            \
+    __asm__ __volatile__(                       \
+        "pldw\t[%0]"                            \
+        :                                       \
+        : "r" (ptr)                             \
+    )
+
+    // __builtin_prefetch((const char*)ptr, 1, 1)
 
 #define CN_STEP3(a, b, c, l, ptr, idx)              \
-    idx = _mm_cvtsi128_si64(c);             \
-    ptr = (__m128i *)&l[idx & MASK];            \
-    __builtin_prefetch((const char*)ptr, 1, 1)
+    ;
 
 #define CN_STEP4(a, b, c, l, ptr, idx)              \
     b = _mm_load_si128(ptr);              \
@@ -551,10 +564,14 @@ __m128i _mm_aesenc_si128(__m128i a, __m128i b)
     a = _mm_add_epi64(a, _mm_set_epi64x(lo, hi));       \
     _mm_store_si128(ptr, a)
 
-#define CN_INIT_AND_EXPLODE(lx, hx, i, memory, state)                     \
-    const uint8_t* lx = memory + (MEM * i);                                \
-    uint64_t* hx = reinterpret_cast<uint64_t*>(state);              \
-    keccak((const uint8_t *)input + size * i, size, state, 200);    \
+#define CN_INIT_AND_EXPLODE(lx, hx, i, memory, state)                   \
+    const uint8_t* lx = memory + (MEM * i);                             \
+    uint64_t* hx = reinterpret_cast<uint64_t*>(state);                  \
+    keccak((const uint8_t *)input + size * i, size, state, 200);        \
+    __asm__ __volatile__(                                               \
+        "pld\t[%0]"                                                     \
+        :                                                               \
+        : "r" ((const char*)input + size * i) );                        \
     cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) hx, (__m128i*) lx)
 
 #define CN_INIT_VARS(ax, bx, cx, hx)                    \
