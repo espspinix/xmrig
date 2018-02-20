@@ -520,7 +520,7 @@ inline void cryptonight_double_hash(const void *__restrict__ input, size_t size,
 #ifdef XMRIG_ARMv7
 __m128i _mm_aesenc_si128(__m128i a, __m128i b)
 {
-    return soft_aesenc(a, b);
+    return soft_aesenc((uint32_t*)&a, b);
 }
 #endif
 
@@ -538,11 +538,12 @@ __m128i _mm_aesenc_si128(__m128i a, __m128i b)
     // __builtin_prefetch((const char*)ptr, 1, 1)
 
 #define CN_STEP2(a, b, c, l, ptr, idx)          \
-    if(SOFT_AES)                                \
+    if(SOFT_AES) {                              \
         c = soft_aesenc((uint32_t*)ptr, a);     \
-    else                                        \
+    } else {                                    \
         c = _mm_load_si128(ptr);                \
         c = _mm_aesenc_si128(c, a);             \
+    }                                           \
     b = _mm_xor_si128(b, c);                    \
     _mm_store_si128(ptr, b);                    \
     idx = _mm_cvtsi128_si64(c);                 \
